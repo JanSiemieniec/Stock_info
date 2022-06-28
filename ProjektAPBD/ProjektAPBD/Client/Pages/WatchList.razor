@@ -1,0 +1,107 @@
+﻿@page "/watchlist"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Client.Services.Interfaces
+@inject IStockService _stockService
+@attribute [Authorize]
+
+@if (stocks == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Logo</th>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Sector</th>
+                <th>Locale</th>
+                <th>Options</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (ProjektAPBD.Shared.Models.Stock ele in stocks)
+            {
+                <tr>
+                    <td><img src="@ele.Icon" width="50px" height="50px" /></td>
+                    <td>@ele.Ticker</td>
+                    <td>@ele.Name</td>
+                    <td>@ele.Industry</td>
+                    <td>@ele.Country</td>
+                    <td><button class="btn btn-primary" @onclick="@(async () => await DeleteStockFromWatchList(ele.Ticker))">Delete</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string _userId;
+    private List<ProjektAPBD.Shared.Models.Stock> stocks = new List<ProjektAPBD.Shared.Models.Stock>();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetClaimsPrincipalData();
+        await base.OnParametersSetAsync();
+        try
+        {
+            stocks = await _stockService.GetWatchedStocksAsync(_userId);
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    private async Task GetClaimsPrincipalData()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            _userId = user.FindFirst(c => c.Type == "sub")?.Value;
+        }
+    }
+    private async Task DeleteStockFromWatchList(string Ticker)
+    {
+        var odp = await _stockService.DeleteStockFromWatchListAsync(_userId, Ticker);
+        stocks = await _stockService.GetWatchedStocksAsync(_userId);
+    }
+
+}
+<style>
+    .table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+
+        .table thead tr {
+            background-color: #009879;
+            color: #ffffff;
+            text-align: left;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 15px;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+            .table tbody tr:nth-of-type(even) {
+                background-color: #f3f3f3;
+            }
+
+            .table tbody tr:last-of-type {
+                border-bottom: 2px solid #009879;
+            }
+</style>

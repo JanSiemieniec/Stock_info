@@ -1,0 +1,172 @@
+﻿@page "/stock/{Ticker}"
+@inherits StockBase
+@using Client.Services.Interfaces
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStockService _stockService
+@attribute [Authorize]
+@inject NavigationManager NavigationManager;
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@if (Stock == null)
+{
+    <p>
+        <img src="https://i.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.webp" />
+    </p>
+}
+else
+{
+    <p><button class="btn btn-primary" @onclick="AddToWatchList" style="float: right;">@res</button></p>
+
+    <p>
+        Search Company
+        <SearchComponent />
+    </p>
+    <div class="float-container">
+
+        <div class="float-child">
+            <div class="green">
+                <img src="@Stock.Icon" width="200px" height="200px" />
+            </div>
+        </div>
+
+        <div class="float-child">
+            <div class="float-container">
+
+                <div class="float-child">
+                    <div class="green">Ticker:<br /><b> @Stock.Ticker </b></div>
+                </div>
+
+                <div class="float-child">
+                    <div class="blue">Name:<br /><b> @Stock.Name </b></div>
+                </div>
+
+            </div>
+            <div class="float-container">
+
+                <div class="float-child">
+                    <div class="green">Industry:<br /><b> @Stock.Industry </b></div>
+                </div>
+
+                <div class="float-child">
+                    <div class="blue">Country:<br /><b> @Stock.Country </b></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div>
+        <h3>
+            Description:
+        </h3>
+        <p>@Stock.Description</p>
+    </div>
+    @if (StockDetails == null || Stock.Ticker != Ticker)
+    {
+        <p>Loading chart...</p>
+    }
+    else
+    {
+        <SfStockChart Title="OHCL Chart" EnablePeriodSelector="false">
+            <StockChartSeriesCollection>
+                <StockChartSeries Type="@ChartSeriesType.HiloOpenClose" DataSource="@StockDetails" XName="Date" High="High" Low="Low" Open="Open" Close="Close" Volume="Volume" BearFillColor="#2ecd71" BullFillColor="#e74c3d">
+
+                </StockChartSeries>
+            </StockChartSeriesCollection>
+        </SfStockChart>
+
+        @if (Articles == null)
+        {
+            <p>Loading articles...</p>
+        }
+        else
+        {
+            @foreach (var ele in Articles)
+            {
+                <div class="article">
+                    <h2><b>@ele.Title</b></h2>
+                    <p><i>@ele.Description</i></p>
+                    <h5 align="right" ><b>@ele.Author</b></h5>
+                    <a href="@ele.AmpUrl">Link do artykułu </a> 
+                </div>
+            }
+
+        }
+    }
+}
+
+
+
+@code {
+    private string res = "Add to watch list";
+    private string _userId;
+    private List<Stock> stocks = new List<Stock>();
+    public List<ProjektAPBD.Shared.Models.StockDataDTO> StockDetails;
+    public List<ProjektAPBD.Shared.Models.StockArticleDTO> Articles;
+    protected override async Task OnParametersSetAsync()
+    {
+        Stock = await _stockService.GetStockAsync(Ticker);
+        StockDetails = await _stockService.AgregateBarsAsync(Ticker);
+        Articles = await _stockService.GetArticlesAsync(Ticker);
+        await GetClaimsPrincipalData();
+        await base.OnParametersSetAsync();
+
+    }
+
+    private async Task GetClaimsPrincipalData()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            _userId = user.FindFirst(c => c.Type == "sub")?.Value;
+        }
+    }
+    private async void AddToWatchList()
+    {
+        var odp = await _stockService.AddWatchStockAsync(_userId, Ticker);
+        res = "Added to watch list";
+    }
+    public class StockData
+    {
+        public DateTime Date { get; set; }
+        public double Open { get; set; }
+        public double Low { get; set; }
+        public double Close { get; set; }
+        public double High { get; set; }
+        public double Volume { get; set; }
+    }
+}
+<style>
+    .float-container {
+        padding: 20px;
+    }
+
+    .float-child {
+        width: 50%;
+        float: left;
+        padding: 20px;
+    }
+
+    .stockchartloader {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #7a0fff;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        top: 46%;
+        left: 46%;
+        border-radius: 50%;
+        -webkit-animation: loader 2s linear infinite;
+        animation: loader 2s linear infinite;
+    }
+
+    .stockchartdiv {
+        visibility: hidden;
+    }
+    .article{
+        margin-top: 25px;
+    }
+</style>
+

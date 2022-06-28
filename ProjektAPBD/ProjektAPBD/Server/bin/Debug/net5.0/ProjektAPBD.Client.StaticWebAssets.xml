@@ -1,0 +1,7 @@
+﻿<StaticWebAssets Version="1.0">
+  <ContentRoot BasePath="/" Path="C:\Users\s22596\Desktop\Projekt APBD s22596\ProjektAPBD\ProjektAPBD\Client\bin\Debug\net5.0\wwwroot\" />
+  <ContentRoot BasePath="/" Path="C:\Users\s22596\Desktop\Projekt APBD s22596\ProjektAPBD\ProjektAPBD\Client\obj\Debug\net5.0\scopedcss\bundle\" />
+  <ContentRoot BasePath="_content/Blazored.Typeahead" Path="C:\Users\s22596\.nuget\packages\blazored.typeahead\4.6.0\build\..\staticwebassets\" />
+  <ContentRoot BasePath="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication" Path="C:\Users\s22596\.nuget\packages\microsoft.aspnetcore.components.webassembly.authentication\5.0.8\build\..\staticwebassets\" />
+  <ContentRoot BasePath="_content/Syncfusion.Blazor" Path="C:\Users\s22596\.nuget\packages\syncfusion.blazor\20.1.0.61\build\..\staticwebassets\" />
+</StaticWebAssets>

@@ -1,0 +1,43 @@
+﻿@using Client.Services.Interfaces
+@inject IStockService _stockService
+@using Blazored.Typeahead
+@using ProjektAPBD.Shared.Models
+@inject NavigationManager _navigationManager
+@inject HttpClient HttpClien
+
+
+<BlazoredTypeahead SearchMethod="@SearchStockAsync"
+                   TValue="StockInSearchDTO"
+                   TItem="StockInSearchDTO"
+                   Value="selectedStock"
+                   ValueChanged="HandleSearch"
+                   ValueExpression="@(() => selectedStock)"
+                   placeholder="Search stock...">
+    <SelectedTemplate>
+    </SelectedTemplate>
+    <ResultTemplate>
+        @context.Ticker | @context.Name | @context.Market
+    </ResultTemplate>
+</BlazoredTypeahead>
+
+
+
+
+@code{
+    private StockInSearchDTO selectedStock;
+    private List<StockInSearchDTO> searched;
+    private async Task<IEnumerable<StockInSearchDTO>> SearchStockAsync(string searchText)
+    {
+        var response = await _stockService.ShowStosckInSearchBarAsync(searchText);
+        searched = response;
+        return response;
+    }
+
+    private void HandleSearch(StockInSearchDTO clickedStock)
+    {
+        if (clickedStock == null) return;
+        selectedStock = clickedStock;
+        _navigationManager.NavigateTo($"/stock/{clickedStock.Ticker}");
+    }
+
+}
